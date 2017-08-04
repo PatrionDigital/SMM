@@ -1,3 +1,4 @@
 .httr-oauth
 # training data filesize too large
 training.1600000.processed.noemoticon.csv 
+.Rproj.user
