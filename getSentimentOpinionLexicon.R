@@ -1,9 +1,6 @@
 opinion.lexicon.pos = scan('opinion-lexicon-English/positive-words.txt', what='character', comment.char=';')
 opinion.lexicon.neg = scan('opinion-lexicon-English/negative-words.txt', what='character', comment.char=';')
 
-opinion.lexicon.pos = scan('opinion-lexicon-English/positive-words.txt', what='character', comment.char=';')
-opinion.lexicon.neg = scan('opinion-lexicon-English/negative-words.txt', what='character', comment.char=';')
-
 words.positive = c(opinion.lexicon.pos,'upgrade')
 words.negative = c(opinion.lexicon.neg,'wait', 'waiting', 'wtf', 'cancellation')
               
@@ -37,11 +34,4 @@ getSentimentScore = function(sentences, words.positive, words.negative, .progres
   return(data.frame(text=sentences, score=scores))
 }
 
-MeruResult = getSentimentScore(MeruTweetsCleaned, words.positive , words.negative)
-OlaResult = getSentimentScore(OlaTweetsCleaned, words.positive , words.negative)
-TaxiForSureResult = getSentimentScore(TaxiForSureTweetsCleaned, words.positive , words.negative)
-UberResult = getSentimentScore(UberTweetsCleaned, words.positive , words.negative)
-
-
-
-
+siggraphResult = getSentimentScore(siggraphTweetsCleaned, words.positive, words.negative)

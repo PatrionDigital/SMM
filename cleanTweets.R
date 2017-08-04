@@ -1,8 +1,4 @@
-load("taxiTweets.RData")
-MeruTweets = sapply(Meru_tweets, function(x) x$getText())
-OlaTweets = sapply(Ola_tweets, function(x) x$getText())
-TaxiForSureTweets = sapply(TaxiForSure_tweets, function(x) x$getText())
-UberTweets = sapply(Uber_tweets, function(x) x$getText())
+#load("taxiTweets.RData")
 
 catch.error = function(x)
 {
@@ -20,22 +16,24 @@ catch.error = function(x)
 cleanTweets <- function(tweet){
   # Clean the tweet for sentiment analysis
   #  remove html links, which are not required for sentiment analysis
-  tweet = gsub("(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", " ", tweet)
+  tweet = gsub("(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", tweet)
   # First we will remove retweet entities from the stored tweets (text)
-  tweet = gsub("(RT|via)((?:\\b\\W*@\\w+)+)", " ", tweet)
+  tweet = gsub("(RT|via)((?:\\b\\W*@\\w+)+)", "", tweet)
   # Then remove all “#Hashtag”
-  tweet = gsub("#\\w+", " ", tweet)
+  tweet = gsub("#\\w+", "", tweet)
   # Then remove all “@people”
-  tweet = gsub("@\\w+", " ", tweet)
+  tweet = gsub("@\\w+", "", tweet)
   # Then remove all the punctuation
-  tweet = gsub("[[:punct:]]", " ", tweet)
+  tweet = gsub("[[:punct:]]", "", tweet)
   # Then remove numbers, we need only text for analytics
-  tweet = gsub("[[:digit:]]", " ", tweet)
+  tweet = gsub("[[:digit:]]", "", tweet)
   # finally, we remove unnecessary spaces (white spaces, tabs etc)
-  tweet = gsub("[ \t]{2,}", " ", tweet)
+  tweet = gsub("[ \t]{2,}", "", tweet)
   tweet = gsub("^\\s+|\\s+$", "", tweet)
   # if anything else, you feel, should be removed, you can. For example “slang words” etc using the above function and methods.
-  # Next we'll convert all the word in lowar case. This makes uniform pattern.
+  # In particular, removing emoji
+  tweet = gsub("\\p{So}|\\p{Cn}","", tweet, perl = TRUE)
+  # Next we'll convert all the word in lower case. This makes uniform pattern.
   tweet = catch.error(tweet)
   tweet
 }
@@ -43,13 +41,13 @@ cleanTweets <- function(tweet){
 cleanTweetsAndRemoveNAs <- function (Tweets) {
   TweetsCleaned = sapply(Tweets, cleanTweets)
   TweetsCleaned = TweetsCleaned[!is.na(TweetsCleaned)]
+  TweetsCleaned = na.omit(TweetsCleaned)
   names(TweetsCleaned) = NULL
   TweetsCleaned = unique(TweetsCleaned)
   TweetsCleaned
 }
 
+sig2017TweetsCleaned = cleanTweetsAndRemoveNAs(sig2017Tweets)
+siggraphTweetsCleaned = cleanTweetsAndRemoveNAs(sig2017Tweets)
+#siggraphOfficialTweetsCleaned = cleanTweetsAndRemoveNAs(siggraphOfficialTweets)
 
-MeruTweetsCleaned = cleanTweetsAndRemoveNAs(MeruTweets)
-OlaTweetsCleaned = cleanTweetsAndRemoveNAs(OlaTweets)
-TaxiForSureTweetsCleaned = cleanTweetsAndRemoveNAs(TaxiForSureTweets)
-UberTweetsCleaned = cleanTweetsAndRemoveNAs(UberTweets)

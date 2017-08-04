@@ -1,51 +1,52 @@
-# library(wordcloud)
-# library(RColorBrewer)
-# library(plyr)
-# library(ggplot2)
-require(sentiment)
-# the classify_emotion function returns an object of class data.frame with 
-# seven columns (anger, disgust, fear, joy, sadness, surprise, best_fit) and 
-# one row for each document:
-MeruTweetsClassEmo = classify_emotion(MeruTweetsCleaned, algorithm="bayes", prior=1.0)
-OlaTweetsClassEmo = classify_emotion(OlaTweetsCleaned, algorithm="bayes", prior=1.0)
-TaxiForSureTweetsClassEmo = classify_emotion(TaxiForSureTweetsCleaned, algorithm="bayes", prior=1.0)
-UberTweetsClassEmo = classify_emotion(UberTweetsCleaned, algorithm="bayes", prior=1.0)
+catch.error = function(x) {
+  # let us create a missing value for test purpose
+  y = NA
+  # try to catch that error (NA) we just created
+  catch_error = tryCatch(tolower(x), error=function(e) e)
+  # if not an error
+  if (!inherits(catch_error, "error"))
+    y = tolower(x)
+  # check result if error exists, otherwise the function works fine.
+  return(y)
+}
 
-# we will fetch emotion category best_fit for our analysis purposes.
-MeruEmotion = MeruTweetsClassEmo[,7]
-OlaEmotion = OlaTweetsClassEmo[,7]
-TaxiForSureEmotion = TaxiForSureTweetsClassEmo[,7]
-UberEmotion = UberTweetsClassEmo[,7]
+cleanTweets <- function(tweet){
+  # Clean the tweet for sentiment analysis
+  #  remove html links, which are not required for sentiment analysis
+  tweet = gsub("(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", " ", tweet)
+  # First we will remove retweet entities from the stored tweets (text)
+  tweet = gsub("(RT|via)((?:\\b\\W*@\\w+)+)", " ", tweet)
+  # Then remove all “#Hashtag”
+  #tweet = gsub("#\\w+", " ", tweet)
+  tweet = gsub("#", " ", tweet)
+  # Then remove all “@people”
+  #tweet = gsub("@\\w+", " ", tweet)
+  tweet = gsub("@", " ", tweet)
+  # Then remove all the punctuation
+  tweet = gsub("[[:punct:]]", " ", tweet)
+  # Then remove numbers, we need only text for analytics
+  tweet = gsub("[[:digit:]]", " ", tweet)
+  # remove emoji
+  tweet = iconv(tweet, "latin1", "ASCII", sub = "")
+  # remove specific terms
+  tweet = gsub("(siggraph|siggraph2017)", "", tweet)
+  # finally, we remove unnecessary spaces (white spaces, tabs etc)
+  tweet = gsub("[ \t]{2,}", "", tweet)
+  tweet = gsub("^\\s+|\\s+$", "", tweet)
+  
+  # Next we'll convert all the word in lower case. This makes uniform pattern.
+  tweet = catch.error(tweet)
+  tweet
+}
 
-# Replace NA’s by word “unknown”
-MeruEmotion[is.na(MeruEmotion)] = "unknown"
-OlaEmotion[is.na(OlaEmotion)] = "unknown"
-TaxiForSureEmotion[is.na(TaxiForSureEmotion)] = "unknown"
-UberEmotion[is.na(UberEmotion)] = "unknown"
-
-# Similar to above, we will classify polarity 
-MeruTweetsClassPol = classify_polarity(MeruTweetsCleaned, algorithm="bayes")
-OlaTweetsClassPol = classify_polarity(OlaTweetsCleaned, algorithm="bayes")
-TaxiForSureTweetsClassPol = classify_polarity(TaxiForSureTweetsCleaned, algorithm="bayes")
-UberTweetsClassPol = classify_polarity(UberTweetsCleaned, algorithm="bayes")
-
-# we will fetch polarity category best_fit for our analysis purposes, 
-MeruPol = MeruTweetsClassPol[,4]
-OlaPol = OlaTweetsClassPol[,4]
-TaxiForSurePol = TaxiForSureTweetsClassPol[,4]
-UberPol = UberTweetsClassPol[,4]
-
-# Let us now create a data frame with the above results 
-MeruSentimentDataFrame = data.frame(text=MeruTweetsCleaned, emotion=MeruEmotion, polarity=MeruPol, stringsAsFactors=FALSE)
-OlaSentimentDataFrame = data.frame(text=OlaTweetsCleaned, emotion=OlaEmotion, polarity=OlaPol, stringsAsFactors=FALSE)
-TaxiForSureSentimentDataFrame = data.frame(text=TaxiForSureTweetsCleaned, emotion=TaxiForSureEmotion, polarity=TaxiForSurePol, stringsAsFactors=FALSE)
-UberSentimentDataFrame = data.frame(text=UberTweetsCleaned, emotion=UberEmotion, polarity=UberPol, stringsAsFactors=FALSE)
-
-# rearrange data inside the frame by sorting it
-MeruSentimentDataFrame = within(MeruSentimentDataFrame, emotion <- factor(emotion, levels=names(sort(table(emotion), decreasing=TRUE))))
-OlaSentimentDataFrame = within(OlaSentimentDataFrame, emotion <- factor(emotion, levels=names(sort(table(emotion), decreasing=TRUE))))
-TaxiForSureSentimentDataFrame = within(TaxiForSureSentimentDataFrame, emotion <- factor(emotion, levels=names(sort(table(emotion), decreasing=TRUE))))
-UberSentimentDataFrame = within(UberSentimentDataFrame, emotion <- factor(emotion, levels=names(sort(table(emotion), decreasing=TRUE))))
+cleanTweetsAndRemoveNAs <- function (Tweets) {
+  TweetsCleaned = sapply(Tweets, cleanTweets)
+  TweetsCleaned = TweetsCleaned[!is.na(TweetsCleaned)]
+  TweetsCleaned = na.omit(TweetsCleaned)
+  names(TweetsCleaned) = NULL
+  TweetsCleaned = unique(TweetsCleaned)
+  TweetsCleaned
+}
 
 plotSentiments1 <- function (sentiment_dataframe,title) {
   require(ggplot2)
@@ -55,12 +56,6 @@ plotSentiments1 <- function (sentiment_dataframe,title) {
     theme(legend.position='right') + ylab('Number of Tweets') + xlab('Emotion Categories')
 }
 
-plotSentiments1(MeruSentimentDataFrame, 'Sentiment Analysis of Tweets on Twitter about MeruCabs')
-plotSentiments1(OlaSentimentDataFrame, 'Sentiment Analysis of Tweets on Twitter about OlaCabs')
-plotSentiments1(TaxiForSureSentimentDataFrame, 'Sentiment Analysis of Tweets on Twitter about TaxiForSure')
-plotSentiments1(UberSentimentDataFrame, 'Sentiment Analysis of Tweets on Twitter about UberIndia')
-
-# Similary we will plot distribution of polarity in the tweets
 plotSentiments2 <- function (sentiment_dataframe,title) {
   require(ggplot2)
   ggplot(sentiment_dataframe, aes(x=polarity)) +
@@ -70,45 +65,26 @@ plotSentiments2 <- function (sentiment_dataframe,title) {
     theme(legend.position='right') + ylab('Number of Tweets') + xlab('Polarity Categories')
 }
 
-plotSentiments2(MeruSentimentDataFrame, 'Polarity Analysis of Tweets on Twitter about MeruCabs')
-plotSentiments2(OlaSentimentDataFrame, 'Polarity Analysis of Tweets on Twitter about OlaCabs')
-plotSentiments2(TaxiForSureSentimentDataFrame, 'Polarity Analysis of Tweets on Twitter about TaxiForSure')
-plotSentiments2(UberSentimentDataFrame, 'Polarity Analysis of Tweets on Twitter about UberIndia')
+siggraphTweetsCleaned = cleanTweetsAndRemoveNAs(siggraphTweets)
 
-removeCustomeWords <- function (TweetsCleaned) {
-  for(i in 1:length(TweetsCleaned)){
-    TweetsCleaned[i] <- tryCatch({
-      TweetsCleaned[i] =  removeWords(TweetsCleaned[i], c(stopwords("english"), "care", "guys", "can", "dis", "didn", "guy" ,"booked", "plz"))
-      TweetsCleaned[i]
-    }, error=function(cond) {
-      TweetsCleaned[i]
-    }, warning=function(cond) {
-      TweetsCleaned[i]
-    })  
-  }
-  return(TweetsCleaned)
-}
+require(RSentiment)
+# Calculates sentiment of each sentence. It classifies sentences into 6 categories: 
+# Positive, Negative, Very Positive, Very Negative Sarcasm and Neutral.
+siggraphClassEmo = calculate_sentiment(siggraphTweetsCleaned)
 
-getWordCloud <- function (sentiment_dataframe, TweetsCleaned, Emotion) {
-  emos = levels(factor(sentiment_dataframe$emotion))
-  n_emos = length(emos)
-  emo.docs = rep("", n_emos)
-  TweetsCleaned = removeCustomeWords(TweetsCleaned)
-  
-  for (i in 1:n_emos){
-    emo.docs[i] = paste(TweetsCleaned[Emotion == emos[i]], collapse=" ")
-  }
-  corpus = Corpus(VectorSource(emo.docs))
-  tdm = TermDocumentMatrix(corpus)
-  tdm = as.matrix(tdm)
-  colnames(tdm) = emos
-  require(wordcloud)
-  suppressWarnings(comparison.cloud(tdm, colors = brewer.pal(n_emos, "Dark2"),  scale = c(3,.5), random.order = FALSE, title.size = 1.5))
-}
+# Similar to above, we will classify polarity 
+siggraphClassPol = calculate_score(siggraphTweetsCleaned)
 
-getWordCloud(MeruSentimentDataFrame, MeruTweetsCleaned, MeruEmotion)
-getWordCloud(OlaSentimentDataFrame, OlaTweetsCleaned, OlaEmotion)
-getWordCloud(TaxiForSureSentimentDataFrame, TaxiForSureTweetsCleaned, TaxiForSureEmotion)
-getWordCloud(UberSentimentDataFrame, UberTweetsCleaned, UberEmotion)
+# Let us now create a data frame with the above results 
+siggraphSentimentDataFrame = data.frame(text=siggraphClassEmo$text, emotion=siggraphClassEmo$sentiment, polarity=siggraphClassPol, stringsAsFactors=FALSE)
 
+# rearrange data inside the frame by sorting it
+siggraphSentimentDataFrame = within(siggraphSentimentDataFrame, emotion <- factor(emotion, levels=names(sort(table(emotion), decreasing=TRUE))))
 
+# with dataframes build, remove the polarity and sentiment objects
+rm(siggraphClassEmo)
+rm(siggraphClassPol)
+
+plotSentiments1(siggraphSentimentDataFrame, 'Sentiment Analysis of #siggraph')
+
+plotSentiments2(siggraphSentimentDataFrame, 'Polarity Analysis of #siggraph')
