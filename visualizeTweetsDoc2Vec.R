@@ -37,7 +37,8 @@ require(RColorBrewer)
 
 #tweets <- removeWords(tweets, c(stopwords("english"), "siggraph", "siggraph2017", "atsiggraph", "siggraphis", "forsiggraph", "los", "angeles", "convention"))
 # create a corpus
-corpus <- Corpus(VectorSource(tweets))
+# it_tweets is the data object
+corpus <- Corpus(VectorSource(it_tweets))
 # create a term-document matrix
 tdm <- TermDocumentMatrix(corpus)
 # convert to matrix
