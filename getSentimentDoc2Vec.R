@@ -85,8 +85,10 @@ glmnet_classifier <- cv.glmnet( x = dtm_train_tfidf,
   # 5-fold cross-validation
   nfolds = 5,
   # high value is less accurate, but has faster training
+  # changed from 1e-3 to 1e-8 (slower)
   thresh = 1e-8,
   # again lower number of iterations for faster training
+  # changed from 1e3 to 1e8 (slower)
   maxit = 1e8)
 print(difftime(Sys.time(), t1, units = 'mins'))
 
