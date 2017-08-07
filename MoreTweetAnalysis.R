@@ -30,8 +30,6 @@ rand.df$rt <- sapply(rand.df$text, function(tweet)
   trim(str_match(tweet,"^RT (@[[:alnum:]_]*)")[2])) 
 # replace names with corresponding anonymising number 
 randuser <- data.frame(randuser)
-rand.df["rt.rand"] <- NA
-#this next line is not working.--
 rand.df$rt.rand <- as.character(randuser$randuser)[match(as.character(rand.df$rt), 
                                                          as.character(randuser$screenName))]
 # make a table with anonymised IDs and number of RTs for each account
@@ -48,15 +46,15 @@ TweetRetweet <- merge(countUser, countRTSortSubset.df, by.x = "randuser", by.y =
 # solid data point = number of tweets, letter R = number of retweets
 require(ggplot2)
 require(grid)
-ggplot() +
-  geom_point(data = TweetRetweet, mapping = aes(reorder(randuser, count), size = 3)) +
-  geom_point(data = TweetRetweet, mapping = aes(randuser, RT_count), size = 4, shape = "R") +
-  xlab("Author") +
-  ylab("Number of messages") +
-  coord_flip() +
-  theme_bw() +
+ggplot() +  
+  geom_point(data = TweetRetweet, mapping =  aes(reorder(randuser, count), count), size = 3) + 
+  geom_point(data = TweetRetweet, mapping =  aes(randuser, RT_count), size = 4, shape = "R") +
+  xlab("Author") + 
+  ylab("Number of messages") + 
+  coord_flip() + 
+  theme_bw() + 
   theme(axis.title.x = element_text(vjust = -0.5, size = 14)) +
-  theme(axis.title.y = element_text(size = 14, angle = 90)) +
+  theme(axis.title.y = element_text(size = 14, angle=90)) + 
   theme(plot.margin = unit(c(1,1,2,2), "lines"))
 
 # calculate the number of follower of each Twitter account
