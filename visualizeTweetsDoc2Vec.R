@@ -1,3 +1,35 @@
+require(tm)
+require(wordcloud)
+require(RColorBrewer)
+
+# create a corpus
+x <- as.vector(it_tweets$iterable)
+corpus <- Corpus(VectorSource(x))
+corpus <- tm_map(corpus, tolower)
+corpus <- tm_map(corpus, removeWords, c(stopwords("english"), 
+  "siggraph", "siggraph2017",
+  "atsiggraph", "siggraphis",
+  "forsiggraph", "los", "new",
+  "angeles", "convention",
+  "https", "http", "2017"))
+rm(x)
+# create a term-document matrix
+tdm <- TermDocumentMatrix(corpus)
+# convert to matrix
+m <- as.matrix(tdm)
+v <- sort(rowSums(m), decreasing = TRUE)
+d <- data.frame(word = names(v), freq = v)
+rm(m)
+rm(v)
+
+# create the wordcloud
+set.seed(1234)
+
+wordcloud(words = d$word, freq = d$freq, min.freq = 3, max.words = 250, random.order = FALSE, rot.per = 0.35, colors = brewer.pal(8, "Dark2"))
+
+barplot(d[1:10,]$freq, names.arg = d[1:10,]$word, col = "lightblue", main = "Most frequent words", ylab = "Word Frequencies", las=2)
+#findFreqTerms(tdm, lowfreq = 4)
+
 # colour palette
 cols <- c("#ce472e", "#f05336", "#ffd73e", "#eec73a", "#4ab04a")
 
@@ -30,37 +62,3 @@ ggplot(df_tweets, aes(x = created, y = sentiment, color = sentiment)) +
     axis.text.y = element_text(size = 8, face = "bold", color = 'black'),
     axis.text.x = element_text(size = 8, face = "bold", color = 'black')) +
   ggtitle("Tweets Sentiment rate (probability of positiveness)")
-
-require(tm)
-require(wordcloud)
-require(RColorBrewer)
-
-#tweets <- removeWords(tweets, c(stopwords("english"), "siggraph", "siggraph2017", "atsiggraph", "siggraphis", "forsiggraph", "los", "angeles", "convention"))
-# create a corpus
-# it_tweets is the data object
-x <- as.vector(it_tweets$iterable)
-corpus <- Corpus(VectorSource(x))
-corpus <- tm_map(corpus, tolower)
-corpus <- tm_map(corpus, removeWords, c(stopwords("english"), 
-                                        "siggraph", "siggraph2017",
-                                        "atsiggraph", "siggraphis",
-                                        "forsiggraph", "los", "new",
-                                        "angeles", "convention",
-                                        "https", "http", "2017"))
-rm(x)
-# create a term-document matrix
-tdm <- TermDocumentMatrix(corpus)
-# convert to matrix
-m <- as.matrix(tdm)
-v <- sort(rowSums(m), decreasing = TRUE)
-d <- data.frame(word = names(v), freq = v)
-rm(m)
-rm(v)
-
-# create the wordcloud
-set.seed(1234)
-
-wordcloud(words = d$word, freq = d$freq, min.freq = 3, max.words = 250, random.order = FALSE, rot.per = 0.35, colors = brewer.pal(8, "Dark2"))
-
-barplot(d[1:10,]$freq, names.arg = d[1:10,]$word, col = "lightblue", main = "Most frequent words", ylab = "Word Frequencies", las=2)
-#findFreqTerms(tdm, lowfreq = 4)

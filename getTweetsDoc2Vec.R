@@ -7,6 +7,9 @@ df_tweets <- twListToDF(searchTwitter('siggraph OR #siggraph', n = 2500, lang = 
   #converting some symbols (emoji, etc)
   dmap_at('text', conv_fun)
 
+# Number of unique Twitter accounts in the sample
+length(unique(df_tweets$screenName))
+
 # preprocessing and tokenization
 it_tweets <- itoken(df_tweets$text,
   preprocessor = prep_fun,
