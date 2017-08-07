@@ -38,18 +38,28 @@ require(RColorBrewer)
 #tweets <- removeWords(tweets, c(stopwords("english"), "siggraph", "siggraph2017", "atsiggraph", "siggraphis", "forsiggraph", "los", "angeles", "convention"))
 # create a corpus
 # it_tweets is the data object
-corpus <- Corpus(VectorSource(it_tweets))
+x <- as.vector(it_tweets$iterable)
+corpus <- Corpus(VectorSource(x))
+corpus <- tm_map(corpus, tolower)
+corpus <- tm_map(corpus, removeWords, c(stopwords("english"), 
+                                        "siggraph", "siggraph2017",
+                                        "atsiggraph", "siggraphis",
+                                        "forsiggraph", "los", "new",
+                                        "angeles", "convention",
+                                        "https", "http", "2017"))
+rm(x)
 # create a term-document matrix
 tdm <- TermDocumentMatrix(corpus)
 # convert to matrix
 m <- as.matrix(tdm)
 v <- sort(rowSums(m), decreasing = TRUE)
 d <- data.frame(word = names(v), freq = v)
+rm(m)
+rm(v)
 
 # create the wordcloud
 set.seed(1234)
 
-wordcloud(words = d$word, freq = d$freq, min.freq = 3, max.words = 100, random.order = FALSE, rot.per = 0.35, colors = brewer.pal(8, "Dark2"))
-findFreqTerms(tdm, lowfreq = 4)
+wordcloud(words = d$word, freq = d$freq, min.freq = 3, max.words = 250, random.order = FALSE, rot.per = 0.35, colors = brewer.pal(8, "Dark2"))
 
-barplot(d[1:10,]$freq, names.arg = d[1:10,]$word, col = "lightblue", main = "Most frequest words", ylab = "Word Frequencies")
+barplot(d[1:10,]$freq, names.arg = d[1:10,]$word, col = "lightblue", main = "Most frequent words", ylab = "Word Frequencies")
