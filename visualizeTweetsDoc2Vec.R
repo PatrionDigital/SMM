@@ -63,3 +63,4 @@ set.seed(1234)
 wordcloud(words = d$word, freq = d$freq, min.freq = 3, max.words = 250, random.order = FALSE, rot.per = 0.35, colors = brewer.pal(8, "Dark2"))
 
 barplot(d[1:10,]$freq, names.arg = d[1:10,]$word, col = "lightblue", main = "Most frequent words", ylab = "Word Frequencies", las=2)
+#findFreqTerms(tdm, lowfreq = 4)
